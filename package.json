@@ -1,0 +1,13 @@
+{
+  "name": "coolmoai-docs",
+  "version": "1.0.0",
+  "description": "coolmoAI 文档站 - 统一 AI API 中转服务使用指南",
+  "scripts": {
+    "dev": "vitepress dev docs",
+    "build": "vitepress build docs",
+    "preview": "vitepress preview docs"
+  },
+  "devDependencies": {
+    "vitepress": "^1.6.3"
+  }
+}

@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
+  base: '/docs/',
   title: 'coolmoAI',
   description: '统一 AI API 中转服务，支持 OpenAI / Claude / Gemini 等主流模型',
   locales: {

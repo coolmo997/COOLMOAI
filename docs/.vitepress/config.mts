@@ -1,7 +1,81 @@
 import { defineConfig } from 'vitepress'
 
+const SITE_ORIGIN = 'https://coolmoai.cc'
+
+const SEO_PAGES: Record<string, { title: string; description: string }> = {
+  'what-is-coolmoai': {
+    title: '什么是 coolmoAI',
+    description: '了解 coolmoAI 的定位、文档范围、API Key、Base URL 和开发者接入路径。实际可用模型与服务限制以最新文档和控制台为准。',
+  },
+  'openai-claude-gemini-api': {
+    title: 'OpenAI、Claude、Gemini API 接入指南',
+    description: '了解 coolmoAI 的 OpenAI 和 Anthropic 兼容接入方式、Base URL、API Key、模型核对和常见错误排查路径。',
+  },
+  'ai-api-for-developers': {
+    title: '开发者 AI API 接入指南',
+    description: '面向开发者的 coolmoAI 接入指南，包含 API Key、Base URL、SDK、cURL、Chat Completions 和错误排查入口。',
+  },
+  openclaw: {
+    title: 'OpenClaw 接入 coolmoAI',
+    description: 'OpenClaw 接入 coolmoAI 的配置前检查和文档入口。具体协议、字段与模型设置需以经核对的专项文档为准。',
+  },
+  'cc-site': {
+    title: 'CC-SITE 接入 coolmoAI',
+    description: 'CC-SITE 接入 coolmoAI 的配置前检查和文档入口。具体协议、字段与模型设置需以经核对的专项文档为准。',
+  },
+}
+
+function getSeoPageKey(page: string) {
+  return page.replace(/^\//, '').replace(/\.md$/, '')
+}
+
+function getCanonicalPath(key: string) {
+  return `/docs/${key}`
+}
+
+
 export default defineConfig({
   base: '/docs/',
+  transformHead({ page }) {
+    const key = getSeoPageKey(page)
+    const meta = SEO_PAGES[key]
+    if (!meta) return []
+
+    const url = `${SITE_ORIGIN}${getCanonicalPath(key)}`
+    const jsonLd = {
+      '@context': 'https://schema.org',
+      '@type': 'TechArticle',
+      '@id': `${url}#article`,
+      url,
+      headline: meta.title,
+      description: meta.description,
+      inLanguage: 'zh-CN',
+      isPartOf: { '@id': `${SITE_ORIGIN}/#website` },
+    }
+
+    return [
+      ['link', { rel: 'canonical', href: url }],
+      ['meta', { property: 'og:type', content: 'article' }],
+      ['meta', { property: 'og:site_name', content: 'coolmoAI' }],
+      ['meta', { property: 'og:title', content: meta.title }],
+      ['meta', { property: 'og:description', content: meta.description }],
+      ['meta', { property: 'og:url', content: url }],
+      ['meta', { property: 'og:locale', content: 'zh_CN' }],
+      ['meta', { name: 'twitter:card', content: 'summary' }],
+      ['meta', { name: 'twitter:title', content: meta.title }],
+      ['meta', { name: 'twitter:description', content: meta.description }],
+      ['script', { type: 'application/ld+json' }, JSON.stringify(jsonLd)],
+    ]
+  },
+  transformHtml(html, id, { page }) {
+    const key = getSeoPageKey(page)
+    if (!SEO_PAGES[key]) return html
+
+    // Root-level Chinese pages do not have page-for-page English translations.
+    // Keep the language switcher useful by sending it to the English docs home
+    // instead of VitePress's generated non-existent counterpart path.
+    return html.replace(/href=\"\/docs\/guide\/en\/[^\"]+\.html\"/g, 'href=\"/docs/guide/en/\"')
+  },
   title: 'coolmoAI',
   description: '统一 AI API 中转服务，支持 OpenAI / Claude / Gemini 等主流模型',
   locales: {
@@ -13,6 +87,16 @@ export default defineConfig({
         nav: [
           { text: '首页', link: '/guide/zh/' },
           { text: '快速开始', link: '/guide/zh/getting-started' },
+          {
+            text: '产品与接入',
+            items: [
+              { text: '什么是 coolmoAI', link: '/what-is-coolmoai' },
+              { text: '开发者 API 接入', link: '/ai-api-for-developers' },
+              { text: 'OpenAI / Claude / Gemini 接入', link: '/openai-claude-gemini-api' },
+              { text: 'OpenClaw 接入检查', link: '/openclaw' },
+              { text: 'CC-SITE 接入检查', link: '/cc-site' },
+            ]
+          },
           {
             text: '工具配置',
             items: [
@@ -31,6 +115,11 @@ export default defineConfig({
             text: '介绍',
             items: [
               { text: '快速开始', link: '/guide/zh/getting-started' },
+              { text: '什么是 coolmoAI', link: '/what-is-coolmoai' },
+              { text: '开发者 API 接入', link: '/ai-api-for-developers' },
+              { text: 'OpenAI / Claude / Gemini 接入', link: '/openai-claude-gemini-api' },
+              { text: 'OpenClaw 接入检查', link: '/openclaw' },
+              { text: 'CC-SITE 接入检查', link: '/cc-site' },
               { text: '常见问题', link: '/guide/zh/faq' },
             ]
           },

@@ -4,6 +4,7 @@ const SITE_ORIGIN = 'https://coolmoai.cc'
 
 type PageSeoMeta = {
   title: string
+  htmlTitle?: string
   description: string
   canonicalPath: string
   inLanguage: string
@@ -80,8 +81,13 @@ function getGuidePageMeta(key: string, title: string): PageSeoMeta | undefined {
     ? `${routeTitle}：coolmoAI 文档中的工具配置与 API 接入说明。具体协议、模型、权限和服务限制以当前文档和接口返回为准。`
     : `${routeTitle}: coolmoAI setup and API integration docs. Check current docs and API responses for limits.`)
 
+  const htmlTitle = route === 'index'
+    ? (locale === 'zh' ? 'coolmoAI 中文文档' : 'coolmoAI English Documentation')
+    : (locale === 'zh' ? `${routeTitle}｜中文文档` : `${routeTitle} | English Docs`)
+
   return {
     title: route === 'index' ? (locale === 'zh' ? 'coolmoAI 中文文档' : 'coolmoAI English Documentation') : routeTitle,
+    htmlTitle,
     description,
     canonicalPath: `/docs/${key}.html`,
     inLanguage: language,
@@ -105,6 +111,7 @@ function getPageSeoMeta(key: string, title: string): PageSeoMeta | undefined {
   if (key === 'index') {
     return {
       title: 'coolmoAI 文档',
+      htmlTitle: 'coolmoAI 开发者文档',
       description: 'coolmoAI 文档入口，提供中文和英文开发者文档、快速开始、工具配置、OpenAI API 参考、接口示例和常见问题排查。',
       canonicalPath: '/docs/',
       inLanguage: 'zh-CN',
@@ -155,6 +162,13 @@ export default defineConfig({
   },
   transformHtml(html, id, { page }) {
     const key = getSeoPageKey(page)
+    const currentTitle = html.match(/<title>([^<]*)<\/title>/)?.[1] ?? ''
+    const meta = getPageSeoMeta(key, currentTitle)
+    if (meta) {
+      const htmlTitle = `${meta.htmlTitle ?? meta.title} | coolmoAI`
+      html = html.replace(/<title>[^<]*<\/title>/, `<title>${htmlTitle}</title>`)
+    }
+
     if (!SEO_PAGES[key]) return html
 
     // Root-level Chinese pages do not have page-for-page English translations.

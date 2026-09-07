@@ -26,4 +26,8 @@ features:
   - icon: 🔗
     title: Direct API Access
     details: Fully OpenAI API compatible. Use with Python, Node.js, Go, PHP SDKs and more.
+  - icon: 📖
+    title: Public Product Overview
+    details: Review coolmoAI's public product definition, documentation basis, and usage boundaries.
+    link: https://coolmoai.cc/seo/
 ---

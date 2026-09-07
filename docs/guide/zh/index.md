@@ -26,4 +26,8 @@ features:
   - icon: 🔗
     title: API 直接调用
     details: 完全兼容 OpenAI API 格式，支持 Python、Node.js、Go、PHP 等语言 SDK
+  - icon: 📖
+    title: 公开产品与接入说明
+    details: 查看 coolmoAI 的产品定位、文档依据、使用边界与常见问答。
+    link: https://coolmoai.cc/seo/
 ---

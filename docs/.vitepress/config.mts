@@ -2,6 +2,15 @@ import { defineConfig } from 'vitepress'
 
 const SITE_ORIGIN = 'https://coolmoai.cc'
 
+type PageSeoMeta = {
+  title: string
+  description: string
+  canonicalPath: string
+  inLanguage: string
+  ogLocale: string
+  schemaType: 'TechArticle' | 'CollectionPage'
+}
+
 const SEO_PAGES: Record<string, { title: string; description: string }> = {
   'what-is-coolmoai': {
     title: '什么是 coolmoAI',
@@ -33,37 +42,114 @@ function getCanonicalPath(key: string) {
   return `/docs/${key}`
 }
 
+const GUIDE_DESCRIPTIONS: Record<string, { zh: string; en: string }> = {
+  index: {
+    zh: 'coolmoAI 中文开发者文档入口，包含快速开始、AI 工具配置、OpenAI API 参考和常见问题排查。实际可用模型、权限和服务限制以最新文档、控制台和接口返回为准。',
+    en: 'coolmoAI developer docs for setup, AI tool configuration, OpenAI-compatible API reference, and troubleshooting. Check current docs and API responses for limits.',
+  },
+  'getting-started': {
+    zh: '了解如何注册 coolmoAI、创建 API Key、配置 Base URL，并使用 cURL 或 SDK 完成首次 API 请求。实际可用模型、权限和服务限制以最新文档、控制台和接口返回为准。',
+    en: 'Register for coolmoAI, create an API Key, configure the Base URL, and make a first request with cURL or an SDK. Check current docs and API responses for limits.',
+  },
+  faq: {
+    zh: '查看 coolmoAI 常见连接、鉴权、限流、上游错误和工具配置问题的排查方法。实际可用模型、权限和服务限制以最新文档、控制台和接口返回为准。',
+    en: 'Troubleshoot coolmoAI connection, authentication, rate-limit, upstream error, and tool setup issues. Check current docs and API responses for limits.',
+  },
+  'openai-api/index': {
+    zh: '查看 coolmoAI OpenAI API 兼容接口概览，包括 Base URL、Chat Completions、Videos 和第三方工具接入入口。具体字段和可用范围以 API 参考与接口返回为准。',
+    en: 'coolmoAI OpenAI-compatible API overview: Base URL, Chat Completions, Videos, and third-party integration. Check current docs for fields and availability.',
+  },
+  'openai-api/chat-completions': {
+    zh: '了解 coolmoAI 的 /v1/chat/completions 请求路径、常用字段、响应结构、流式输出和 Python、Node.js 示例。具体模型与权限以接口返回为准。',
+    en: 'coolmoAI /v1/chat/completions reference with request fields, responses, streaming, and Python/Node.js examples. Check API responses for model availability.',
+  },
+  'openai-api/videos': {
+    zh: '了解 coolmoAI 的 /v1/videos 接口文档，包括创建任务、查询状态、下载内容和 webhook 相关说明。具体可用能力与权限以接口返回为准。',
+    en: 'coolmoAI /v1/videos reference for task creation, status, downloads, and webhooks. Check the API response for available capabilities and permissions.',
+  },
+}
+
+function getGuidePageMeta(key: string, title: string): PageSeoMeta | undefined {
+  const match = key.match(/^guide\/(zh|en)\/(.+)$/)
+  if (!match) return undefined
+
+  const [, locale, route] = match
+  const language = locale === 'zh' ? 'zh-CN' : 'en-US'
+  const routeTitle = title.replace(/\s*\|\s*coolmoAI$/, '')
+  const description = GUIDE_DESCRIPTIONS[route]?.[locale] ?? (locale === 'zh'
+    ? `${routeTitle}：coolmoAI 文档中的工具配置与 API 接入说明。具体协议、模型、权限和服务限制以当前文档和接口返回为准。`
+    : `${routeTitle}: coolmoAI setup and API integration docs. Check current docs and API responses for limits.`)
+
+  return {
+    title: route === 'index' ? (locale === 'zh' ? 'coolmoAI 中文文档' : 'coolmoAI English Documentation') : routeTitle,
+    description,
+    canonicalPath: `/docs/${key}.html`,
+    inLanguage: language,
+    ogLocale: locale === 'zh' ? 'zh_CN' : 'en_US',
+    schemaType: 'TechArticle',
+  }
+}
+
+function getPageSeoMeta(key: string, title: string): PageSeoMeta | undefined {
+  const seoPage = SEO_PAGES[key]
+  if (seoPage) {
+    return {
+      ...seoPage,
+      canonicalPath: getCanonicalPath(key),
+      inLanguage: 'zh-CN',
+      ogLocale: 'zh_CN',
+      schemaType: 'TechArticle',
+    }
+  }
+
+  if (key === 'index') {
+    return {
+      title: 'coolmoAI 文档',
+      description: 'coolmoAI 文档入口，提供中文和英文开发者文档、快速开始、工具配置、OpenAI API 参考、接口示例和常见问题排查。',
+      canonicalPath: '/docs/',
+      inLanguage: 'zh-CN',
+      ogLocale: 'zh_CN',
+      schemaType: 'CollectionPage',
+    }
+  }
+
+  return getGuidePageMeta(key, title)
+}
+
 
 export default defineConfig({
   base: '/docs/',
-  transformHead({ page }) {
+  transformHead({ page, title }) {
     const key = getSeoPageKey(page)
-    const meta = SEO_PAGES[key]
+    const meta = getPageSeoMeta(key, title)
     if (!meta) return []
 
-    const url = `${SITE_ORIGIN}${getCanonicalPath(key)}`
+    const url = `${SITE_ORIGIN}${meta.canonicalPath}`
     const jsonLd = {
       '@context': 'https://schema.org',
-      '@type': 'TechArticle',
-      '@id': `${url}#article`,
+      '@type': meta.schemaType,
+      '@id': `${url}#${meta.schemaType === 'TechArticle' ? 'article' : 'page'}`,
       url,
       headline: meta.title,
       description: meta.description,
-      inLanguage: 'zh-CN',
+      inLanguage: meta.inLanguage,
       isPartOf: { '@id': `${SITE_ORIGIN}/#website` },
     }
 
     return [
+      ['meta', { name: 'description', content: meta.description }],
       ['link', { rel: 'canonical', href: url }],
-      ['meta', { property: 'og:type', content: 'article' }],
+      ['meta', { property: 'og:type', content: meta.canonicalPath === '/docs/' ? 'website' : 'article' }],
       ['meta', { property: 'og:site_name', content: 'coolmoAI' }],
       ['meta', { property: 'og:title', content: meta.title }],
       ['meta', { property: 'og:description', content: meta.description }],
       ['meta', { property: 'og:url', content: url }],
-      ['meta', { property: 'og:locale', content: 'zh_CN' }],
+      ['meta', { property: 'og:image', content: `${SITE_ORIGIN}/logo.png` }],
+      ['meta', { property: 'og:locale', content: meta.ogLocale }],
       ['meta', { name: 'twitter:card', content: 'summary' }],
       ['meta', { name: 'twitter:title', content: meta.title }],
       ['meta', { name: 'twitter:description', content: meta.description }],
+      ['meta', { name: 'twitter:image', content: `${SITE_ORIGIN}/logo.png` }],
       ['script', { type: 'application/ld+json' }, JSON.stringify(jsonLd)],
     ]
   },
@@ -248,7 +334,7 @@ export default defineConfig({
     }
   },
   themeConfig: {
-    logo: '/logo.svg',
+    logo: { src: '/logo.svg', alt: 'coolmoAI' },
     socialLinks: [
       { icon: 'github', link: 'https://github.com/coolmo997/COOLMOAI' }
     ],

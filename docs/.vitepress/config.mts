@@ -89,7 +89,12 @@ function getGuidePageMeta(key: string, title: string): PageSeoMeta | undefined {
     title: route === 'index' ? (locale === 'zh' ? 'coolmoAI 中文文档' : 'coolmoAI English Documentation') : routeTitle,
     htmlTitle,
     description,
-    canonicalPath: `/docs/${key}.html`,
+    // Scheme B: clean URLs are canonical; generated .html files remain implementation details.
+    canonicalPath: route === 'index'
+      ? `/docs/guide/${locale}/`
+      : route.endsWith('/index')
+        ? `/docs/guide/${locale}/${route.slice(0, -'/index'.length)}/`
+        : `/docs/guide/${locale}/${route}`,
     inLanguage: language,
     ogLocale: locale === 'zh' ? 'zh_CN' : 'en_US',
     schemaType: 'TechArticle',

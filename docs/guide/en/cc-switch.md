@@ -11,7 +11,7 @@ brew install --cask cc-switch
 ```
 :::
 
-Or download the installer directly from the [Releases page](https://github.com/farion1231/ccswitch/releases):
+Or download the installer directly from the [Releases page](https://github.com/farion1231/cc-switch/releases):
 
 | OS | Package |
 |----|---------|

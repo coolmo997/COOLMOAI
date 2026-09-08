@@ -11,7 +11,7 @@ brew install --cask cc-switch
 ```
 :::
 
-或直接从 [Releases 页面](https://github.com/farion1231/ccswitch/releases) 下载安装包：
+或直接从 [Releases 页面](https://github.com/farion1231/cc-switch/releases) 下载安装包：
 
 | 操作系统 | 安装包 |
 |---------|--------|

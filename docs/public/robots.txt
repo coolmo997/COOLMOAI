@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://coolmoai.cc/sitemap.xml
+Sitemap: https://coolmoai.cc/docs/sitemap.xml
